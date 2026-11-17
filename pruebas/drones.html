@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080d20">
+  <title>Prueba de luces · Para Isa</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: "Instrument Sans", system-ui, sans-serif;
+      background: #080d20;
+      color: #fff3dc;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    button, input { font: inherit; }
+    .show {
+      position: relative;
+      isolation: isolate;
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: grid;
+      grid-template-rows: auto minmax(16rem, 1fr) auto;
+      padding: clamp(1rem, 4vw, 2.8rem);
+      overflow: hidden;
+      background: radial-gradient(ellipse at 50% 63%, #25254c, #0c132a 48%, #080d20 82%);
+    }
+    canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; }
+    .top { align-self: start; justify-self: start; pointer-events: none; }
+    h1 {
+      margin: 0;
+      font: 400 clamp(2rem, 5vw, 4.3rem)/.97 "Instrument Serif", Georgia, serif;
+      letter-spacing: -.06em;
+    }
+    .top p { margin: .55rem 0 0; color: #ddd0e9; font-size: .82rem; }
+    .panel {
+      grid-row: 3;
+      justify-self: center;
+      width: min(100%, 34rem);
+      padding: .83rem 1rem;
+      border: 1px solid #ddc9ff4d;
+      border-radius: 1.1rem;
+      background: #12162ee8;
+      box-shadow: 0 .65rem 2.5rem #070a2087;
+    }
+    .timeline { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: .75rem; }
+    input[type=range] { width: 100%; min-width: 0; margin: 0; accent-color: #ffd9ad; cursor: pointer; }
+    output { font-size: .73rem; color: #ded1ec; min-width: 4.25rem; text-align: right; font-variant-numeric: tabular-nums; }
+    .controls { display: flex; flex-wrap: wrap; align-items: center; gap: .52rem; margin-top: .62rem; }
+    button {
+      padding: .52rem .75rem; border: 1px solid #ddc9ff55; border-radius: 99px;
+      background: #302849; color: #fff3dd; cursor: pointer; font-size: .76rem;
+    }
+    button:hover { filter: brightness(1.16); }
+    button:focus-visible, input:focus-visible { outline: 2px solid #a8f4ff; outline-offset: 3px; }
+    .primary { background: #ffdeb2; color: #2d2237; border-color: #ffeaca; font-weight: 650; }
+    .chapter { margin: 0 0 0 auto; color: #e1d5ee; font-size: .73rem; }
+    @media (max-width: 395px) { .chapter { flex-basis: 100%; margin: .1rem 0 0; } }
+    @media (max-height: 440px) and (orientation: landscape) {
+      .show { grid-template-rows: auto minmax(10rem, 1fr) auto; padding: .7rem 1rem; }
+      h1 { font-size: 1.8rem; }
+      .top p { margin-top: .2rem; }
+      .panel { padding: .55rem .75rem; }
+    }
+  </style>
+</head>
+<body>
+  <main class="show">
+    <canvas id="stage" aria-label="Un espectáculo de puntos luminosos que forman una estrella, una pareja bailando y Feliz cumpleaños, Isa"></canvas>
+    <header class="top">
+      <h1>Prueba de luces</h1>
+      <p>Ocho compases · 114 BPM</p>
+    </header>
+    <section class="panel" aria-label="Controles de la prueba">
+      <div class="timeline">
+        <input id="seek" type="range" min="0" max="32" step=".02" value="0" aria-label="Avanzar o retroceder en el espectáculo">
+        <output id="counter" for="seek">0:00 / 0:17</output>
+      </div>
+      <div class="controls">
+        <button class="primary" id="play" type="button">Reproducir</button>
+        <button id="restart" type="button">Desde el inicio</button>
+        <button id="sound" type="button" aria-pressed="false">Activar música</button>
+        <p class="chapter" id="chapter">Estrella</p>
+      </div>
+    </section>
+    <audio id="track" src="../assets/musica/Rock With You.mp3" preload="metadata"></audio>
+  </main>
+  <script>
+    const canvas = document.querySelector("#stage");
+    const ink = canvas.getContext("2d");
+    const play = document.querySelector("#play");
+    const restart = document.querySelector("#restart");
+    const sound = document.querySelector("#sound");
+    const track = document.querySelector("#track");
+    const seek = document.querySelector("#seek");
+    const counter = document.querySelector("#counter");
+    const chapter = document.querySelector("#chapter");
+    const beatLength = 60 / 114;
+    const duration = 32 * beatLength;
+    const count = 520;
+    const turn = Math.PI * 2;
+    const colors = ["#ffe3a7", "#ff9fd0", "#a2e8ff"];
+    const cap = value => Math.max(0, Math.min(value, 1));
+    const ease = value => { const t = cap(value); return t * t * (3 - 2 * t); };
+    const mix = (a, b, t) => a + (b - a) * t;
+
+    let seed = 729;
+    function random() {
+      seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+      return seed / 4294967296;
+    }
+
+    function line(points, path, amount, color) {
+      const edges = path.slice(1).map(([x, y], i) => Math.hypot(x - path[i][0], y - path[i][1]));
+      const length = edges.reduce((sum, edge) => sum + edge, 0);
+      for (let i = 0; i < amount; i++) {
+        let distance = length * i / (amount - 1);
+        let edge = 0;
+        while (edge < edges.length - 1 && distance > edges[edge]) distance -= edges[edge++];
+        const part = edges[edge] ? distance / edges[edge] : 0;
+        points.push({ x: mix(path[edge][0], path[edge + 1][0], part), y: mix(path[edge][1], path[edge + 1][1], part), color });
+      }
+    }
+
+    function circle(points, x, y, radius, amount, color) {
+      for (let i = 0; i < amount; i++) {
+        const a = i / amount * turn;
+        points.push({ x: x + Math.cos(a) * radius, y: y + Math.sin(a) * radius, color });
+      }
+    }
+
+    const starCorners = Array.from({ length: 10 }, (_, i) => {
+      const radius = i % 2 ? 83 : 193;
+      const angle = i / 10 * turn - Math.PI / 2;
+      return [Math.cos(angle) * radius, Math.sin(angle) * radius + 11];
+    });
+    const star = [];
+    line(star, [...starCorners, starCorners[0]], 245, 0);
+    while (star.length < count) {
+      const side = Math.floor(random() * 10);
+      const along = random();
+      const fill = Math.sqrt(random()) * .96;
+      star.push({ x: mix(starCorners[side][0], starCorners[(side + 1) % 10][0], along) * fill,
+        y: (mix(starCorners[side][1], starCorners[(side + 1) % 10][1], along) - 11) * fill + 11, color: 0 });
+    }
+
+    function drawPerson(points, person, color) {
+      const { head, hip, hand, free, foot, other, side } = person;
+      circle(points, ...head, 28, 48, color);
+      const shoulder = [mix(head[0], hip[0], .24), head[1] + 53];
+      line(points, [[head[0], head[1] + 28], shoulder, hip], 27, color);
+      const hem = color === 1 ? 32 : 23;
+      line(points, [[shoulder[0] - 21, shoulder[1]], [hip[0] - hem, hip[1]], [hip[0] + hem, hip[1]], [shoulder[0] + 21, shoulder[1]]], 39, color);
+      line(points, [shoulder, [mix(shoulder[0], hand[0], .54), mix(shoulder[1], hand[1], .63) + 19], hand], 35, color);
+      line(points, [shoulder, [mix(shoulder[0], free[0], .64), mix(shoulder[1], free[1], .6) + 21], free], 33, color);
+      for (const [index, end] of [foot, other].entries()) {
+        line(points, [[hip[0] + (index ? 13 : -13), hip[1]],
+          [mix(hip[0], end[0], .55) + side * (index ? -7 : 10), mix(hip[1], end[1], .53)],
+          end, [end[0] + side * 16, end[1]]], 39, color);
+      }
+    }
+
+    function pair(girl, boy, clasp) {
+      const convert = ([head, hip, free, foot, other], side) => ({ head, hip, free, foot, other, side, hand: clasp });
+      const points = [];
+      drawPerson(points, convert(girl, 1), 1);
+      drawPerson(points, convert(boy, -1), 2);
+      return points;
+    }
+
+    const dancePoses = [
+      pair([[-120,-137],[-123,28],[-211,-31],[-168,160],[-67,154]],
+        [[120,-143],[113,26],[208,-26],[64,151],[164,160]], [0,-35]),
+      pair([[-97,-133],[-113,25],[-195,-80],[-157,160],[-75,125]],
+        [[109,-145],[105,20],[192,-68],[78,151],[163,160]], [8,-97]),
+      pair([[-72,-106],[-65,47],[-115,-176],[-109,160],[-35,104]],
+        [[82,-150],[96,24],[178,-10],[63,160],[150,148]], [9,-165]),
+      pair([[-109,-139],[-102,24],[-173,-44],[-151,149],[-58,160]],
+        [[117,-136],[107,28],[198,-56],[69,160],[157,132]], [-2,-90])
+    ];
+
+    function greetingPoints() {
+      const stencil = document.createElement("canvas");
+      stencil.width = 960;
+      stencil.height = 420;
+      const brush = stencil.getContext("2d", { willReadFrequently: true });
+      brush.fillStyle = "#fff";
+      brush.textAlign = "center";
+      brush.font = "900 96px Arial";
+      brush.fillText("Feliz cumpleaños", 480, 165, 895);
+      brush.font = "900 143px Arial";
+      brush.fillText("Isa", 480, 322);
+      const mask = brush.getImageData(0, 0, 960, 420).data;
+      let pool;
+      for (let spacing = 10; spacing >= 3; spacing--) {
+        pool = [];
+        for (let y = spacing; y < 420; y += spacing) {
+          for (let x = spacing; x < 960; x += spacing) {
+            if (mask[(y * 960 + x) * 4 + 3] > 130) pool.push({ x: x - 480, y: y - 210, color: y < 186 ? 0 : 1 });
+          }
+        }
+        if (pool.length >= count) break;
+      }
+      return Array.from({ length: count }, (_, i) => pool[Math.floor(i * pool.length / count)]);
+    }
+
+    // Assign nearby destinations while keeping each dancer's points attached to the same limbs.
+    function match(from, to) {
+      const used = new Uint8Array(to.length);
+      return from.map(point => {
+        let index = 0;
+        let best = Infinity;
+        to.forEach((dest, i) => {
+          if (used[i]) return;
+          const length = (dest.x - point.x) ** 2 + (dest.y - point.y) ** 2;
+          if (length < best) { index = i; best = length; }
+        });
+        used[index] = 1;
+        return index;
+      });
+    }
+    const dancerOrder = match(star, dancePoses[0]);
+    const dancers = dancePoses.map(pose => dancerOrder.map(i => pose[i]));
+    const words = greetingPoints();
+    const greeting = match(dancers[0], words).map(i => words[i]);
+    const loose = star.map(point => ({
+      x: point.x * 2.1 + (random() - .5) * 300, y: point.y * 1.46 + 59 + (random() - .5) * 155, color: 0
+    }));
+    const trails = Array.from({ length: count }, () => (random() - .5) * 125);
+    const backdrop = Array.from({ length: 110 }, () => ({ x: random(), y: random(), r: .45 + random() * 1.15, phase: random() * turn }));
+
+    function sprite(color) {
+      const sheet = document.createElement("canvas");
+      sheet.width = sheet.height = 48;
+      const brush = sheet.getContext("2d");
+      const gradient = brush.createRadialGradient(24, 24, 0, 24, 24, 24);
+      gradient.addColorStop(0, "#fff9eb");
+      gradient.addColorStop(.16, color);
+      gradient.addColorStop(.34, color + "80");
+      gradient.addColorStop(1, color + "00");
+      brush.fillStyle = gradient;
+      brush.fillRect(0, 0, 48, 48);
+      return sheet;
+    }
+    const sprites = colors.map(sprite);
+
+    let width, height, scale, centerY, frame = 0;
+    let position = 0, startedAt = 0, playing = false, musicOn = false, audioClock = false, attempt = 0;
+
+    function cue(beat) {
+      if (beat < 3) return [loose, star, ease(beat / 3), 1, "Estrella"];
+      if (beat < 8) return [star, star, 0, 0, "Estrella"];
+      if (beat < 12) return [star, dancers[0], ease((beat - 8) / 4), 1, "Dos siluetas"];
+      if (beat < 20) {
+        const movement = (beat - 12) / 2;
+        const from = Math.floor(movement);
+        return [dancers[from], dancers[(from + 1) % dancers.length], ease(movement - from), 0, "Dos siluetas"];
+      }
+      if (beat < 24) return [dancers[0], greeting, ease((beat - 20) / 4), 1, "Dedicatoria"];
+      return [greeting, greeting, 0, 0, "Dedicatoria"];
+    }
+
+    function paint(time) {
+      const beat = time / beatLength;
+      const [from, to, progress, morph, name] = cue(beat);
+      ink.clearRect(0, 0, width, height);
+      for (const dot of backdrop) {
+        ink.globalAlpha = .18 + Math.sin(time * 1.1 + dot.phase) * .11;
+        ink.fillStyle = "#d6d5ff";
+        ink.fillRect(dot.x * width, dot.y * height, dot.r, dot.r);
+      }
+      const bend = Math.sin(progress * Math.PI) * morph;
+      const brightness = .8 + Math.sin(beat * Math.PI) * .11;
+      ink.globalCompositeOperation = "lighter";
+      for (let i = 0; i < count; i++) {
+        const a = from[i], b = to[i];
+        const x = width / 2 + (mix(a.x, b.x, progress) + trails[i] * bend * .45) * scale;
+        const y = centerY + (mix(a.y, b.y, progress) - Math.abs(trails[i]) * bend * .53) * scale;
+        const flicker = .8 + Math.sin(time * 2 + i * 3.7) * .16;
+        const size = Math.max(3.2, (i % 13 === 0 ? 15 : 9.3) * scale);
+        ink.globalAlpha = brightness * flicker;
+        ink.drawImage(sprites[progress < .45 ? a.color : b.color], x - size / 2, y - size / 2, size, size);
+        ink.fillStyle = "#fff6eb";
+        ink.fillRect(x - .52, y - .52, 1.04, 1.04);
+        if (bend > .28 && i % 9 === 0) {
+          ink.globalAlpha = bend * .31;
+          ink.fillStyle = colors[b.color];
+          ink.fillRect(x - (b.x - a.x) * scale * .036, y - (b.y - a.y) * scale * .036, 1.25, 1.25);
+        }
+      }
+      ink.globalCompositeOperation = "source-over";
+      ink.globalAlpha = 1;
+      chapter.textContent = name;
+      seek.value = beat;
+      const seconds = Math.min(17, Math.floor(time + .19));
+      counter.textContent = `0:${String(seconds).padStart(2, "0")} / 0:17`;
+    }
+
+    function resize() {
+      width = canvas.clientWidth;
+      height = canvas.clientHeight;
+      const ratio = Math.min(devicePixelRatio || 1, 1.6);
+      canvas.width = Math.round(width * ratio);
+      canvas.height = Math.round(height * ratio);
+      ink.setTransform(ratio, 0, 0, ratio, 0, 0);
+      scale = Math.min(width * .94 / 960, height * .66 / 440);
+      centerY = height * .48;
+      paint(current());
+    }
+
+    function current(now = performance.now()) {
+      if (!playing) return position;
+      return Math.min(duration, audioClock ? track.currentTime : position + (now - startedAt) / 1000);
+    }
+
+    function pause() {
+      position = current();
+      playing = audioClock = false;
+      attempt++;
+      track.pause();
+      cancelAnimationFrame(frame);
+      play.textContent = position >= duration ? "Repetir" : "Reproducir";
+      paint(position);
+    }
+
+    function advance(now) {
+      const time = current(now);
+      if (time >= duration) { pause(); return; }
+      paint(time);
+      frame = requestAnimationFrame(advance);
+    }
+
+    function syncMusicButton() {
+      sound.setAttribute("aria-pressed", String(musicOn));
+      sound.textContent = musicOn ? "Silenciar música" : "Activar música";
+    }
+
+    async function startAudio() {
+      const call = ++attempt;
+      try {
+        if (track.readyState >= 1) track.currentTime = current();
+        await track.play();
+        if (call === attempt && playing && musicOn) audioClock = true;
+      } catch {
+        if (call !== attempt) return;
+        musicOn = false;
+        syncMusicButton();
+      }
+    }
+
+    function start() {
+      if (position >= duration) position = 0;
+      startedAt = performance.now();
+      playing = true;
+      play.textContent = "Pausar";
+      if (musicOn) startAudio();
+      frame = requestAnimationFrame(advance);
+    }
+
+    function jump(time) {
+      position = time;
+      startedAt = performance.now();
+      if (track.readyState >= 1) track.currentTime = time;
+      paint(time);
+      if (!playing) play.textContent = time >= duration ? "Repetir" : "Reproducir";
+    }
+
+    play.addEventListener("click", () => playing ? pause() : start());
+    restart.addEventListener("click", () => { jump(0); if (!playing) start(); });
+    seek.addEventListener("input", () => jump(Number(seek.value) * beatLength));
+    sound.addEventListener("click", () => {
+      position = current();
+      startedAt = performance.now();
+      musicOn = !musicOn;
+      if (musicOn && playing) startAudio();
+      else if (!musicOn) { attempt++; audioClock = false; track.pause(); }
+      syncMusicButton();
+    });
+    window.addEventListener("resize", resize);
+    resize();
+  </script>
+</body>
+</html>

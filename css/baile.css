@@ -1,0 +1,166 @@
+:root {
+  color-scheme: dark;
+  font-family: "Space Mono", Consolas, monospace;
+  color: #ffefd8;
+  background: #210e26;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; }
+button { font: inherit; cursor: pointer; }
+[hidden] { display: none !important; }
+
+.disco {
+  position: relative;
+  isolation: isolate;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 50% 46%, transparent 29%, #140b2655 100%),
+    #251331 url("../assets/imagenes/discoteca.png") center bottom / cover no-repeat;
+}
+
+#dance-floor {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.disco__controls {
+  position: absolute;
+  z-index: 3;
+  inset: max(.8rem, env(safe-area-inset-top)) max(.8rem, env(safe-area-inset-right)) auto max(.8rem, env(safe-area-inset-left));
+  display: flex;
+  justify-content: space-between;
+  gap: .45rem;
+}
+
+.disco__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .43rem;
+  min-height: 2.35rem;
+  padding: .49rem clamp(.42rem, 2vw, .77rem);
+  color: #fff0da;
+  border: 1px solid #f69ad365;
+  border-radius: 100vmax;
+  background: #27152be8;
+  font-size: clamp(.65rem, 1.65vw, .84rem);
+  text-decoration: none;
+}
+
+.disco__button:hover { background: #572347; border-color: #ffd9d6cc; }
+.disco__button:focus-visible, .television__dial:focus-visible { outline: 2px solid #b3ffff; outline-offset: 4px; }
+.disco__note { color: #fface0; }
+
+.television {
+  --rim: #81465f;
+  position: absolute;
+  z-index: 2;
+  top: clamp(4.4rem, 18%, 10.25rem);
+  left: 50%;
+  width: min(77vw, 29rem);
+  min-height: clamp(6.4rem, 20vh, 10.5rem);
+  display: grid;
+  grid-template: 1fr 1fr / minmax(0, 1fr) clamp(1.45rem, 5vw, 3rem);
+  gap: .55rem;
+  padding: clamp(.45rem, 1.25vw, .8rem);
+  transform: translateX(-50%);
+  border: 1px solid #f3b6aa84;
+  border-radius: 1rem;
+  background: linear-gradient(145deg, #ad6a76 1%, var(--rim) 18%, #4c293e 67%, #351f38);
+  box-shadow: 0 4px 0 #251724, 0 13px 25px #1206129e, 0 0 41px #f8a6bf3b, inset 0 0 0 2px #eda08c39;
+}
+
+.television__screen {
+  position: relative;
+  isolation: isolate;
+  grid-row: 1 / 3;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  min-height: clamp(5.4rem, 18vh, 8.65rem);
+  padding: .58rem clamp(.55rem, 1.8vw, 1.15rem);
+  overflow: hidden;
+  border: clamp(3px, .65vw, 7px) solid #231824;
+  border-radius: 13% / 20%;
+  background: radial-gradient(ellipse, #305155, #192b39 62%, #131322);
+  box-shadow: 0 0 0 1px #ce8f91a8, inset 0 0 22px #101923;
+  text-align: center;
+}
+
+.television__screen::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background:
+    linear-gradient(145deg, #faffff21, transparent 33% 76%, #c8e7ff0a),
+    repeating-linear-gradient(0deg, #0f142657 0 1px, transparent 1px 4px);
+  pointer-events: none;
+}
+
+.television h1 {
+  margin: 0 0 .36rem;
+  color: #ffb9d6;
+  font-family: inherit;
+  font-size: clamp(.61rem, 1.42vw, .79rem);
+  letter-spacing: .17em;
+  text-transform: uppercase;
+  text-shadow: 0 0 11px #ff8bb694;
+}
+
+.television p {
+  max-width: 32ch;
+  margin: 0;
+  color: #f4ffea;
+  font: 600 clamp(.88rem, 2.45vw, 1.45rem)/1.2 "Instrument Sans", system-ui, sans-serif;
+  text-wrap: balance;
+  text-shadow: 0 0 10px #80f7e0bb;
+}
+
+.television__dial {
+  align-self: end;
+  justify-self: center;
+  width: min(100%, 2.12rem);
+  aspect-ratio: 1;
+  padding: 0;
+  border: 1px solid #eda7928a;
+  border-radius: 50%;
+  color: #ffe1b5;
+  background: conic-gradient(#714255, #3e293e, #986379, #714255);
+  box-shadow: 0 2px 3px #1f1022;
+}
+
+.television__dial:hover { color: white; filter: brightness(1.28); }
+.television__dial:disabled { opacity: .6; cursor: default; }
+.television__speaker {
+  align-self: center;
+  width: 86%;
+  justify-self: center;
+  height: clamp(.65rem, 2.3vh, 1.2rem);
+  border-radius: .25rem;
+  background: repeating-linear-gradient(0deg, #251a2d 0 2px, #7e5162 2px 4px);
+}
+
+.disco__replay {
+  position: absolute;
+  z-index: 3;
+  left: 50%;
+  bottom: max(1rem, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  border-color: #ffe7b6;
+  box-shadow: 0 0 22px #fbaaaf60;
+}
+
+@media (max-height: 420px) and (orientation: landscape) {
+  .television { top: 13%; width: min(43vw, 24rem); min-height: 4.65rem; padding: .37rem; }
+  .television__screen { min-height: 3.95rem; padding-block: .3rem; }
+  .television h1 { margin-bottom: .18rem; }
+  .television p { font-size: clamp(.69rem, 2.8vh, .93rem); }
+}

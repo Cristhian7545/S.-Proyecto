@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#231219">
+  <title>Una carta para Isa</title>
+  <link rel="stylesheet" href="../css/carta.css">
+  <script src="../js/carta.js" defer></script>
+</head>
+<body>
+  <div class="cafe" aria-hidden="true">
+    <div class="cafe__scene">
+      <div class="cafe__sun"></div>
+      <div class="cafe__reflection"></div>
+      <div class="cafe__butterfly cafe__butterfly--amber"></div>
+      <div class="cafe__butterfly cafe__butterfly--rose"></div>
+    </div>
+    <div class="cafe__prop cafe__prop--cake"></div>
+    <div class="cafe__prop cafe__prop--bracelet"></div>
+  </div>
+
+  <header class="toolbar">
+    <a class="toolbar__control" href="../index.html#galaxia"><span aria-hidden="true">←</span> Volver a los vinilos</a>
+    <button class="toolbar__control" id="letter-sound" type="button" aria-label="Activar música" aria-pressed="false">
+      <span class="toolbar__note" aria-hidden="true">♫</span>
+      <span id="letter-sound-label">Activar música</span>
+    </button>
+  </header>
+
+  <main class="reading-room" id="reading-room">
+    <div class="bookstand" id="bookstand">
+      <div class="book-cover">
+        <div class="book-cover__seal" aria-hidden="true">✦</div>
+        <h1><span lang="en">Happy Birthday</span><strong>Isa</strong></h1>
+        <p class="book-cover__face">˶ᵔ ᵕ ᵔ˶ ♡</p>
+        <button class="book-cover__open" id="open-letter" type="button">
+          <span>Tu próxima sorpresa está a un clic ✨</span>
+          <strong>Abrir el libro <span aria-hidden="true">↗</span></strong>
+        </button>
+      </div>
+    </div>
+
+    <article class="letter" id="letter" aria-labelledby="letter-title" hidden>
+      <div class="letter__ribbon" aria-hidden="true"></div>
+      <div class="letter__leaf letter__leaf--left">
+        <span class="letter__ornament" aria-hidden="true">✧</span>
+        <h2 id="letter-title" tabindex="-1">Feliz cumpleaños <span class="letter__name">Isa Sue &lt;3</span></h2>
+        <p class="letter__opening"><strong>¡Feliz cumpleaños, Isa, la estrella que nunca deja de brillar! 💫🎶</strong> Hoy celebro el día en que llegaste al mundo y llenaste de luz la vida de quienes te rodean.</p>
+        <p>Tu energía, tu forma tan genuina de sentir y esa manera tuya de ver belleza incluso cuando el mundo parece gris… Hay algo en todo eso que solo tú sabes transmitir. Eres fuerte, incluso cuando los días pesan. Y aunque a veces caigas o llores, siempre te vuelves a levantar con el corazón más brillante.</p>
+        <p>Admiro cómo cuidas de los tuyos —tu familia, tus amigos y tu hijo Blacky 🐶— con ese amor inmenso y tierno que solo tú sabes dar. Tu presencia transforma lo cotidiano en algo cálido, como una canción que te abraza sin decir una palabra.</p>
+      </div>
+      <div class="letter__leaf letter__leaf--right">
+        <span class="letter__ornament" aria-hidden="true">✦</span>
+        <p>Nunca olvides que eres hermosa tal como eres, sin comparación ni medida. Tu belleza no se limita a lo que se ve: vive en tu mirada, en tus gestos, en tu forma de reír y en cómo das todo sin esperar nada.</p>
+        <blockquote>Eres bella por dentro y por fuera, una melodía única que no necesita arreglos.</blockquote>
+        <p class="letter__closing">Feliz cumpleaños, Isabel sjsjj ✨<br>Que tu historia siga sonando con esa magia tuya, Isita. ✨🍷</p>
+        <button class="letter__close" id="close-letter" type="button">Cerrar el libro <span aria-hidden="true">↶</span></button>
+      </div>
+    </article>
+    <noscript><p class="no-script">Activa JavaScript para abrir el libro animado.</p></noscript>
+  </main>
+
+  <audio id="letter-music" src="../assets/musica/Te quiero.mp3" autoplay loop preload="auto"></audio>
+</body>
+</html>

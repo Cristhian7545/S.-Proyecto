@@ -1,0 +1,251 @@
+.galaxy {
+  --cream: #fff2db;
+  --disc: clamp(64px, 12.5vmin, 126px);
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  overflow: hidden;
+  color: var(--cream);
+  background: radial-gradient(ellipse at 50% 53%, #2f1738 0%, #130e23 37%, #060713 81%);
+}
+
+.galaxy.is-traveling {
+  animation: enter-space .55s ease-out both;
+  background: radial-gradient(ellipse at 50% 53%, #201126, #090711 47%, #04050a 80%);
+}
+@keyframes enter-space { from { opacity: 0; } to { opacity: 1; } }
+
+#galaxy-sky, .galaxy__menu, .galaxy__flash { position: absolute; inset: 0; width: 100%; height: 100%; }
+#galaxy-sky, .galaxy__flash { pointer-events: none; }
+
+.galaxy__menu {
+  opacity: 0;
+  transition: opacity .85s ease-out;
+}
+
+.galaxy__menu.is-visible { opacity: 1; }
+
+.galaxy__header {
+  position: absolute;
+  inset: clamp(3.3rem, 7vh, 5rem) 1rem auto;
+  z-index: 1;
+  text-align: center;
+  pointer-events: none;
+  text-shadow: 0 2px 18px #060713;
+}
+
+.galaxy__header h2 {
+  margin: 0;
+  font-size: clamp(2rem, 5.5vw, 4.5rem);
+  letter-spacing: -.045em;
+}
+
+.galaxy__header h2:focus { outline: none; }
+.galaxy__header p { margin: .55rem 0 0; color: #dfd2ed; font-size: clamp(.72rem, 1.6vw, .9rem); }
+
+.galaxy__back, .galaxy__controls button {
+  position: relative;
+  z-index: 2;
+  border: 1px solid #eee2ff55;
+  border-radius: 100vmax;
+  background: #101129db;
+  color: var(--cream);
+}
+
+.galaxy__back {
+  position: absolute;
+  top: max(1rem, env(safe-area-inset-top));
+  left: max(1rem, env(safe-area-inset-left));
+  padding: .65rem .95rem;
+  font-size: .78rem;
+}
+
+.galaxy__controls {
+  position: absolute;
+  z-index: 2;
+  inset: auto 0 max(4%, env(safe-area-inset-bottom));
+  display: flex;
+  justify-content: center;
+  gap: .7rem;
+  pointer-events: none;
+}
+
+.galaxy__controls button {
+  width: 2.55rem;
+  height: 2.55rem;
+  line-height: 1;
+  font-size: 1.65rem;
+  pointer-events: auto;
+}
+
+.galaxy__controls button:hover, .galaxy__back:hover { background: #33264a; }
+
+.orbit {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.orbit.is-dragging, .orbit.is-dragging .record { cursor: grabbing; }
+
+.galaxy-notes {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  pointer-events: none;
+}
+
+.galaxy-notes li {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: clamp(94px, 25vw, 136px);
+  padding: .2rem .1rem;
+  opacity: 0;
+  color: #ffe7f3;
+  font-size: clamp(.65rem, 1.35vmin, .84rem);
+  line-height: 1.24;
+  text-align: center;
+  text-wrap: balance;
+  text-shadow: 0 1px 3px #11091f, 0 0 5px #160b25, 0 0 12px #e477bd88;
+}
+
+.galaxy-notes li::before {
+  content: "";
+  display: block;
+  width: .43rem;
+  height: .43rem;
+  margin: 0 auto .35rem;
+  transform: rotate(45deg);
+  background: #fff3ed;
+  box-shadow: 0 0 6px #ffe9fa, 0 0 12px #ff83cd;
+}
+
+.galaxy-core {
+  position: absolute;
+  z-index: 1;
+  top: 53%;
+  left: 50%;
+  width: clamp(50px, 16vmin, 88px);
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+  touch-action: manipulation;
+  transition: box-shadow .25s;
+}
+
+.galaxy-core:hover { box-shadow: inset 0 0 20px #fdd0ff35, 0 0 24px #fdd0ff37; }
+
+.core-message {
+  position: absolute;
+  z-index: 3;
+  top: 53%;
+  left: 50%;
+  width: min(87%, 48rem);
+  margin: 0;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  pointer-events: none;
+  color: #fff8f2;
+  font: 400 clamp(1.7rem, 5.5vmin, 4.5rem)/1.08 "Cormorant Garamond", Georgia, serif;
+  text-align: center;
+  text-wrap: balance;
+  text-shadow: 0 1px 5px #1a0b29, 0 0 20px #f698d8, 0 0 36px #ab7cef;
+}
+
+.record {
+  --label: #f3aabf;
+  --ink: #411e39;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--disc);
+  display: grid;
+  justify-items: center;
+  gap: .48rem;
+  padding: 0;
+  color: var(--cream);
+  background: none;
+  border: 0;
+  text-decoration: none;
+  text-align: center;
+  transform-origin: 50% 0;
+  -webkit-user-drag: none;
+}
+
+.record--lights { --label: #fbd184; --ink: #562935; }
+.record--flowers { --label: #bde6c0; --ink: #193b42; }
+.record--candle { --label: #bacaff; --ink: #28234d; }
+.record--dance { --label: #d9b9ff; --ink: #432858; }
+
+.record__disc {
+  display: grid;
+  width: 100%;
+  aspect-ratio: 1;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid #d8c4ff65;
+  background:
+    conic-gradient(from 13deg, #f9e4ff00 9%, #e4d5ff38 17%, #f9e4ff00 24% 59%, #b6bcff30 68%, #f9e4ff00 74%),
+    repeating-radial-gradient(circle, #10111e 0 2px, #292737 2.5px 3.5px, #111220 4px 5px);
+  box-shadow: 0 8px 19px #03040c94, 0 0 13px #bca3ff40;
+  transition: border-color .2s, box-shadow .2s;
+}
+
+.record__disc span {
+  display: grid;
+  width: 40%;
+  aspect-ratio: 1;
+  place-items: center;
+  border: 1px solid #ffe9fb8c;
+  border-radius: 50%;
+  color: var(--ink);
+  background: radial-gradient(circle at 34% 26%, #fff0da, var(--label) 74%);
+  box-shadow: inset 0 0 0 3px #24142b35, 0 0 0 2px #090a14;
+  font-size: clamp(.95rem, 2.4vmin, 1.5rem);
+}
+
+.record__name {
+  display: block;
+  padding: .24rem .56rem;
+  border: 1px solid #d8c4ff44;
+  border-radius: 999px;
+  background: #0b0b20e8;
+  font-size: .78rem;
+  line-height: 1.15;
+  letter-spacing: .025em;
+}
+
+.record:hover .record__disc, .record:focus-visible .record__disc {
+  border-color: var(--label);
+  box-shadow: 0 0 24px var(--label), 0 9px 19px #03040cb8;
+}
+
+.record:focus-visible { outline-offset: 6px; border-radius: 5px; }
+
+.galaxy__flash {
+  z-index: 4;
+  opacity: 0;
+  background: radial-gradient(ellipse at 50% 53%, #fff8e8 0%, #f4c9ff 32%, #9a8fff70 66%, transparent);
+}
+
+.galaxy__flash.is-lit { animation: reach-core .82s ease-out; }
+@keyframes reach-core { from { opacity: .86; } to { opacity: 0; } }
+
+@media (max-height: 420px) {
+  .galaxy { --disc: clamp(47px, 15vmin, 70px); }
+  .galaxy__header { top: .75rem; }
+  .galaxy__header h2 { font-size: 1.65rem; }
+  .galaxy__header p { margin: .18rem 0 0; }
+  .record { gap: .19rem; }
+  .record__name { font-size: .68rem; }
+  .galaxy__controls { bottom: .38rem; }
+  .galaxy__controls button { width: 1.8rem; height: 1.8rem; font-size: 1.2rem; }
+}

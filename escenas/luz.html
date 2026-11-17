@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080612">
+  <title>Luz · Pide un deseo</title>
+  <link rel="stylesheet" href="../css/luz.css">
+  <script src="../js/luz.js" defer></script>
+</head>
+<body>
+  <main class="party" id="birthday-room" data-phase="dark">
+    <canvas id="pixel-room" aria-hidden="true"></canvas>
+    <header class="party__controls">
+      <a href="../index.html#galaxia" class="party__control"><span aria-hidden="true">←</span> Volver a los vinilos</a>
+      <button id="candle-sound" class="party__control" aria-pressed="false" type="button">
+        <span aria-hidden="true">♫</span> <span id="candle-sound-label">Activar música</span>
+      </button>
+    </header>
+
+    <button class="party__candle" id="blow-candle" type="button" aria-label="Soplar la vela">
+      <span aria-hidden="true">Toca para soplar</span>
+    </button>
+
+    <div class="party__greeting" id="party-greeting" hidden>
+      <h1 id="party-title" tabindex="-1">¡Sorpresa, Isa!</h1>
+      <p>Feliz cumpleaños ♡</p>
+    </div>
+    <audio id="candle-music" src="../assets/musica/A un minuto de ti.mp3" preload="auto" autoplay loop></audio>
+  </main>
+</body>
+</html>

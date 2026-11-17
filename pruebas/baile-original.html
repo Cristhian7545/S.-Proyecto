@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#210e26">
+  <title>Baile · Para Isa</title>
+  <link rel="stylesheet" href="../css/baile.css">
+  <script src="../js/baile-dancers.js" defer></script>
+  <script src="../js/baile.js" defer></script>
+</head>
+<body>
+  <main class="disco" aria-label="Una pista de baile ochentera con una pareja, Michael Jackson y sus amigos">
+    <canvas id="dance-floor" aria-hidden="true"></canvas>
+    <header class="disco__controls">
+      <a class="disco__button" href="../index.html#galaxia"><span aria-hidden="true">←</span> Volver a los vinilos</a>
+      <button class="disco__button" id="dance-sound" type="button" aria-pressed="false">
+        <span class="disco__note" aria-hidden="true">♫</span> <span id="dance-sound-label">Activar música</span>
+      </button>
+    </header>
+
+    <section class="television" aria-labelledby="dedication">
+      <div class="television__screen">
+        <h1 id="dedication">Para Isa</h1>
+        <p id="dance-message" aria-live="polite">Hay algo muy tuyo en la forma de iluminar un lugar.</p>
+      </div>
+      <button class="television__dial" id="next-dedication" type="button" aria-label="Siguiente dedicatoria" title="Siguiente dedicatoria">↻</button>
+      <span class="television__speaker" aria-hidden="true"></span>
+    </section>
+
+    <button id="replay-dance" class="disco__button disco__replay" type="button" hidden>Volver a bailar <span aria-hidden="true">↻</span></button>
+    <audio id="dance-music" src="../assets/musica/Rock With You.mp3" preload="auto" autoplay></audio>
+  </main>
+</body>
+</html>

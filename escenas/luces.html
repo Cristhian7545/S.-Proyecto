@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0c102c">
+  <title>Luces · Feliz cumpleaños</title>
+  <link rel="stylesheet" href="../css/luces.css">
+  <script src="../js/luces.js" defer></script>
+</head>
+<body>
+  <main class="lookout" aria-label="Dos jóvenes y un cuervo junto a la baranda de un mirador, bajo un cielo de fuegos artificiales y farolillos">
+    <canvas id="festival" aria-hidden="true"></canvas>
+    <button class="sky-launch" id="launch-firework" type="button" aria-label="Lanzar un fuego artificial">
+      <span class="sky-launch__hint" aria-hidden="true">Toca el cielo</span>
+    </button>
+    <header class="lookout__controls">
+      <a class="lookout__control" href="../index.html#galaxia"><span aria-hidden="true">←</span> Volver a los vinilos</a>
+      <button class="lookout__control" id="festival-sound" type="button" aria-pressed="false">
+        <span class="lookout__note" aria-hidden="true">♫</span>
+        <span id="festival-sound-label">Activar música</span>
+      </button>
+    </header>
+    <h1 class="sky-greeting">
+      <span class="sky-greeting__crest" aria-hidden="true">✧</span>
+      <span class="sky-greeting__first">Feliz</span>
+      <strong>cumpleaños</strong>
+      <span class="sky-greeting__base" aria-hidden="true">✦</span>
+    </h1>
+    <audio id="festival-music" src="../assets/musica/Me Quedo Aqui.mp3" autoplay loop preload="auto"></audio>
+  </main>
+</body>
+</html>

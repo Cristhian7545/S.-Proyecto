@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#100c21">
+  <title>Un cuento para Isa</title>
+  <style>
+    :root { color-scheme: dark; font-family: "Instrument Sans", system-ui, sans-serif; color: #fff2db; background: #100c21; }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    button, input, select { font: inherit; }
+    button, select, input[type=range] { cursor: pointer; }
+    .film {
+      min-height: 100vh; min-height: 100dvh; height: 100dvh;
+      display: grid; grid-template-rows: auto minmax(16rem, 1fr) auto; gap: .65rem; isolation: isolate;
+      padding: clamp(.8rem, 2.8vw, 2.2rem);
+      background: radial-gradient(ellipse at 55% 51%, #302040, #181329 55%, #0b0c1c 91%);
+    }
+    header { display: flex; justify-content: space-between; align-items: start; gap: .55rem; }
+    h1 { margin: 0; font: 400 clamp(1.6rem, 5vw, 3.85rem)/.98 "Instrument Serif", Georgia, serif; letter-spacing: -.06em; }
+    .track { margin: .44rem 0 0; color: #e6bdcf; font-size: .74rem; }
+    select, button, .back {
+      color: #fff0e1; border: 1px solid #ffcfe966; border-radius: 999px;
+      background: #30243e; padding: .52rem .68rem; font-size: .74rem;
+    }
+    .navigation { display: flex; align-items: center; gap: .45rem; }
+    .back { text-decoration: none; white-space: nowrap; }
+    select { max-width: min(42vw, 12rem); }
+    :is(select,button,input,.back):focus-visible { outline: 2px solid #a6f6f6; outline-offset: 3px; }
+    button:disabled { opacity: .54; cursor: default; }
+    .scene { position: relative; min-width: 0; overflow: hidden; }
+    canvas { position: absolute; inset: 0; width: 100%; height: 100%; mix-blend-mode: lighten; }
+    .story {
+      position: absolute; z-index: 1; top: 50%; left: 7%; width: 38%; transform: translateY(-50%);
+      text-shadow: 0 1px 5px #0c091a, 0 0 25px #160e23; pointer-events: none;
+    }
+    .scene[data-side="right"] .story { left: auto; right: 7%; }
+    .scene[data-side="center"] .story {
+      top: auto; bottom: 4%; left: 50%; width: 90%; transform: translateX(-50%); text-align: center;
+    }
+    .story h2 { margin: .35rem 0 .53rem; color: #ffe3bc; font: 400 clamp(1.45rem, 4vw, 3.65rem)/1 "Instrument Serif", Georgia, serif; letter-spacing: -.045em; text-wrap: balance; }
+    .rhythm { display: inline-block; color: #ffdfb5; transform: translateY(var(--lift, 0px)); }
+    .story p { width: min(100%, 38ch); margin: 0; color: #f5dded; font-size: clamp(.86rem, 1.65vw, 1.14rem); line-height: 1.5; text-wrap: pretty; }
+    .scene[data-side="center"] .story p { margin-inline: auto; }
+    .player { width: min(100%, 47rem); justify-self: center; display: grid; gap: .48rem; }
+    .sub {
+      display: grid; align-content: center; gap: .22rem; min-height: 4.95rem;
+      padding: .52rem .85rem; border-radius: .84rem; text-align: center;
+      background: #15132ae0; border: 1px solid #e6bad941;
+    }
+    .sub[data-quiet="true"] { opacity: 0; }
+    .sub p { margin: 0; line-height: 1.25; text-wrap: balance; }
+    .sub__es { color: #fff0d8; font-size: clamp(.92rem, 2vw, 1.14rem); font-weight: 650; }
+    .sub__en { color: #dfc8e9; font-size: clamp(.77rem, 1.7vw, .99rem); }
+    .transport { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: .65rem; }
+    .play { background: #ffdbb0; border-color: #ffe8c4; color: #392139; font-weight: 700; min-width: 6.4rem; }
+    .transport input { width: 100%; margin: 0; accent-color: #ffcead; }
+    output { color: #ead3ea; font-size: .71rem; font-variant-numeric: tabular-nums; }
+    .error { margin: 0; color: #ffbead; font-size: .76rem; text-align: center; }
+    [hidden] { display: none !important; }
+    @media (max-width: 650px) {
+      .navigation { display: grid; justify-items: end; gap: .3rem; }
+      .navigation :is(.back,select) { padding: .39rem .59rem; font-size: .69rem; }
+      .scene[data-side] .story { top: auto; right: auto; left: 50%; bottom: 4%; width: 92%; text-align: center; transform: translateX(-50%); }
+      .story h2 { font-size: clamp(1.5rem, 5.5vw, 2.7rem); margin-block: .22rem .36rem; }
+      .story p { margin-inline: auto; font-size: clamp(.8rem, 2.7vw, .98rem); line-height: 1.35; }
+      .sub { min-height: 5.3rem; padding: .5rem .55rem; }
+      .transport { gap: .45rem; }
+      .play { min-width: 5.6rem; }
+    }
+  </style>
+  <script src="../js/cuento-isa-puntos.js" defer></script>
+  <script src="../js/cuento-isa.js" defer></script>
+</head>
+<body>
+  <main class="film">
+    <header>
+      <div><h1>Un cuento para Isa</h1><p class="track">Rock With You · Michael Jackson</p></div>
+      <div class="navigation">
+        <a class="back" href="../index.html#galaxia"><span aria-hidden="true">← </span>Volver a los vinilos</a>
+        <select id="chapter" aria-label="Ir a una escena" disabled></select>
+      </div>
+    </header>
+    <section class="scene" id="scene" data-side="left" aria-label="Cuento visual de Isa">
+      <canvas id="lights" role="img" aria-label="Ilustraciones formadas por puntos de luz"></canvas>
+      <div class="story" id="story">
+        <h2 id="heading">El día que llegaste, Isa</h2>
+        <p id="narrative">Entre todos los días que tiene un año, hay uno en el que me gusta detenerme. Ese día llegaste tú.</p>
+      </div>
+    </section>
+    <section class="player" aria-label="Subtítulos y controles">
+      <div class="sub" id="subtitles" data-quiet="true" aria-label="Letra bilingüe">
+        <p class="sub__es" id="es" lang="es"></p>
+        <p class="sub__en" id="en" lang="en"></p>
+      </div>
+      <div class="transport">
+        <button class="play" id="play" type="button" disabled>Preparando luces…</button>
+        <input id="seek" type="range" min="0" max="205" step=".1" value="0" aria-label="Posición de la canción" disabled>
+        <output id="time">0:00</output>
+      </div>
+      <p class="error" id="audio-error" role="status" hidden>No se pudo abrir la canción. Conserva la carpeta Music junto a esta página.</p>
+    </section>
+    <audio id="song" src="../assets/musica/Rock With You.mp3" preload="metadata"></audio>
+  </main>
+</body>
+</html>

@@ -1,0 +1,700 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#21152c">
+  <title>Baile en 3D · Para Isa</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: "Instrument Sans", system-ui, sans-serif;
+      color: #fff4e4;
+      background: #20142b;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    button, input { font: inherit; }
+    button, label[for] { cursor: pointer; }
+    button:disabled { cursor: default; opacity: .56; }
+    .floor {
+      position: relative;
+      isolation: isolate;
+      width: 100%;
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
+      background: radial-gradient(ellipse at 50% 47%, #674053, #25162e 62%, #1c1228);
+    }
+    canvas { display: block; position: absolute; inset: 0; width: 100%; height: 100%; }
+    .top {
+      position: absolute;
+      inset: max(1.05rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) auto max(1rem, env(safe-area-inset-left));
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: .8rem;
+      pointer-events: none;
+    }
+    .back {
+      padding: .57rem .77rem;
+      border: 1px solid #f3bec752;
+      border-radius: 999px;
+      color: #fff3e5;
+      background: #24172cc9;
+      text-decoration: none;
+      font-size: .74rem;
+      white-space: nowrap;
+      pointer-events: auto;
+    }
+    .title { text-align: right; }
+    h1 {
+      margin: 0;
+      font: 400 clamp(2rem, 5vw, 4.3rem)/.93 "Instrument Serif", Georgia, serif;
+      letter-spacing: -.065em;
+      color: #ffe5ba;
+      text-shadow: 0 1px 16px #3e192f;
+    }
+    .title p { margin: .46rem 0 0; font-size: .72rem; color: #f1c7d9; }
+    .panel {
+      position: absolute;
+      left: 50%;
+      bottom: max(1.15rem, env(safe-area-inset-bottom));
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: .69rem .9rem;
+      align-items: center;
+      width: min(calc(100% - 2rem), 35rem);
+      padding: .8rem;
+      transform: translateX(-50%);
+      border: 1px solid #ffd0bb60;
+      border-radius: 1.25rem;
+      background: #281a32e8;
+      box-shadow: 0 .65rem 2rem #140c2187, inset 0 1px 0 #ffdfdb26;
+    }
+    .readout { min-width: 0; }
+    .pose { margin: 0; color: #fff1d5; font-size: .9rem; font-weight: 650; }
+    .tempo {
+      display: flex;
+      align-items: center;
+      gap: .46rem;
+      color: #e9bad2;
+      margin-top: .36rem;
+      font-size: .7rem;
+      font-variant-numeric: tabular-nums;
+    }
+    .beats { display: flex; gap: .19rem; }
+    .beats i {
+      width: .44rem;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: #996579;
+    }
+    .beats .is-on { background: #ffe1a7; box-shadow: 0 0 10px #ffa6c1; }
+    .operations { display: flex; gap: .46rem; }
+    .action {
+      padding: .54rem .75rem;
+      border: 1px solid #e9b7cb5f;
+      border-radius: 999px;
+      color: #fff0e4;
+      background: #56324e;
+      font-size: .73rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .action--play { border-color: #ffe4b7; color: #332039; background: #ffdcaa; }
+    .action:hover:not(:disabled) { filter: brightness(1.14); }
+    .file-row {
+      position: relative;
+      grid-column: 1 / -1;
+      display: flex;
+      min-width: 0;
+      gap: .65rem;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid #f6c6ca30;
+      padding-top: .61rem;
+    }
+    .file-row label { color: #ffdfb4; text-decoration: underline; text-underline-offset: .2em; font-size: .73rem; white-space: nowrap; }
+    .file-row input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+    .file-row input:disabled + label { opacity: .56; cursor: default; }
+    .file-row input:focus-visible + label, :is(.back,.action):focus-visible { outline: 2px solid #a6f6f8; outline-offset: 4px; }
+    #audio-status { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #edcbd9; font-size: .71rem; }
+    .load-state {
+      position: absolute;
+      inset: 42% 1rem auto;
+      margin: 0;
+      text-align: center;
+      color: #ffe0c4;
+      pointer-events: none;
+    }
+    @media (max-width: 425px) {
+      .panel { gap: .54rem .37rem; padding: .67rem; }
+      .operations { gap: .27rem; }
+      .action { padding: .51rem .5rem; font-size: .67rem; }
+      .pose { font-size: .8rem; }
+    }
+    @media (max-height: 420px) and (orientation: landscape) {
+      .panel { width: min(33rem, calc(100% - 2rem)); bottom: .58rem; padding: .52rem .75rem; gap: .37rem .7rem; }
+      .file-row { padding-top: .35rem; }
+      .top { top: .63rem; }
+    }
+  </style>
+</head>
+<body>
+  <main class="floor" id="floor">
+    <canvas id="stage" aria-label="Dos personajes chibi bailan sobre una pista disco"></canvas>
+    <header class="top">
+      <a class="back" href="../index.html#galaxia"><span aria-hidden="true">←</span> Volver a los vinilos</a>
+      <div class="title"><h1>Baile en 3D</h1><p>Para Isa</p></div>
+    </header>
+    <p class="load-state" id="load-state" role="status">Cargando la pista 3D…</p>
+    <section class="panel" aria-label="Controles del baile">
+      <div class="readout">
+        <p class="pose" id="pose-name">Groove base</p>
+        <div class="tempo"><span>114 BPM</span><span class="beats" aria-hidden="true"><i class="is-on"></i><i></i><i></i><i></i></span></div>
+      </div>
+      <div class="operations">
+        <button class="action action--play" id="play" type="button" disabled>Reproducir</button>
+        <button class="action" id="step" type="button" disabled>Siguiente paso</button>
+      </div>
+      <div class="file-row">
+        <input id="file" type="file" accept="audio/mpeg,.mp3" disabled>
+        <label for="file">Cargar MP3</label>
+        <span id="audio-status" role="status">Rock With You · Michael Jackson</span>
+      </div>
+    </section>
+    <audio id="track" src="../assets/musica/Rock With You.mp3" preload="metadata"></audio>
+  </main>
+  <script type="module">
+    const CDN = [
+      "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+      "https://unpkg.com/three@0.180.0/build/three.module.js"
+    ];
+    const loading = document.querySelector("#load-state");
+
+    async function loadThree() {
+      for (const address of CDN) {
+        try { return await import(address); }
+        catch (error) { console.warn("No se pudo cargar Three.js desde", address, error); }
+      }
+      return null;
+    }
+
+    const three = await loadThree();
+    if (three) {
+      try {
+        startScene(three);
+        loading.hidden = true;
+      } catch (error) {
+        loading.textContent = "No se pudo iniciar la pista 3D. Revisa que el navegador admita WebGL.";
+        console.error(error);
+      }
+    } else {
+      loading.textContent = "Conéctate a internet y vuelve a cargar para abrir la pista 3D.";
+    }
+
+    function startScene(THREE) {
+      const canvas = document.querySelector("#stage");
+      const play = document.querySelector("#play");
+      const step = document.querySelector("#step");
+      const picker = document.querySelector("#file");
+      const audioStatus = document.querySelector("#audio-status");
+      const poseName = document.querySelector("#pose-name");
+      const beatLights = [...document.querySelectorAll(".beats i")];
+      const audio = document.querySelector("#track");
+      const reduced = matchMedia("(prefers-reduced-motion: reduce)");
+      const secondsPerBeat = 60 / 114;
+      const secondsPerBar = secondsPerBeat * 4;
+      const secondDelay = .12;
+      const turn = 2 * Math.PI;
+      const stageHeight = .14;
+      const { lerp, clamp, smoothstep } = THREE.MathUtils;
+
+      const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+      renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.45));
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFShadowMap;
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.14;
+      const stage = new THREE.Scene();
+      stage.background = new THREE.Color("#21142c");
+      stage.fog = new THREE.Fog("#21142c", 10, 30);
+      const camera = new THREE.PerspectiveCamera(37, 1, .1, 40);
+      const target = new THREE.Vector3(0, 1.28, 0);
+
+      function material(color, roughness = .49, metalness = .04) {
+        return new THREE.MeshStandardMaterial({ color, roughness, metalness });
+      }
+
+      function mesh(parent, geometry, coating, x = 0, y = 0, z = 0) {
+        const part = new THREE.Mesh(geometry, coating);
+        part.position.set(x, y, z);
+        part.castShadow = geometry.type === "CapsuleGeometry";
+        part.receiveShadow = true;
+        parent.add(part);
+        return part;
+      }
+
+      function pivot(parent, name, x, y, z) {
+        const point = new THREE.Group();
+        point.name = name;
+        point.position.set(x, y, z);
+        parent.add(point);
+        return point;
+      }
+
+      function softShadowTexture() {
+        const sheet = document.createElement("canvas");
+        sheet.width = sheet.height = 128;
+        const paint = sheet.getContext("2d");
+        const gradient = paint.createRadialGradient(64, 64, 4, 64, 64, 63);
+        gradient.addColorStop(0, "#170c2cbd");
+        gradient.addColorStop(.46, "#170c2c85");
+        gradient.addColorStop(1, "#170c2c00");
+        paint.fillStyle = gradient;
+        paint.fillRect(0, 0, 128, 128);
+        const texture = new THREE.CanvasTexture(sheet);
+        texture.colorSpace = THREE.SRGBColorSpace;
+        return texture;
+      }
+
+      stage.add(new THREE.AmbientLight("#d7c5ff", 1.55));
+      function spotlight(color, intensity, x, y, z, shadows = false) {
+        const light = new THREE.PointLight(color, intensity, 22, 2);
+        light.position.set(x, y, z);
+        light.castShadow = shadows;
+        light.shadow.mapSize.set(512, 512);
+        light.shadow.camera.near = .1;
+        light.shadow.camera.far = 15;
+        light.shadow.normalBias = .025;
+        light.shadow.bias = -.0004;
+        stage.add(light);
+        return light;
+      }
+      const goldLight = spotlight("#ffc18b", 76, -3.6, 4.7, 3.5, true);
+      const pinkLight = spotlight("#ff82c8", 83, 4.2, 4.3, 1.1);
+
+      const base = mesh(stage, new THREE.PlaneGeometry(58, 44), material("#35243f", .82), 0, -.035, -3.5);
+      base.rotation.x = -Math.PI / 2;
+      base.castShadow = false;
+      const platform = mesh(stage, new THREE.CylinderGeometry(3.5, 3.55, .19, 110), material("#62405a", .65), 0, stageHeight - .095, 0);
+      platform.castShadow = false;
+      const center = mesh(stage, new THREE.CircleGeometry(3.33, 100), material("#724c65", .66), 0, stageHeight + .003, 0);
+      center.rotation.x = -Math.PI / 2;
+      center.castShadow = false;
+      const lamps = [];
+      for (const [color, radius, thickness] of [["#f6a7cc", 3.39, .021], ["#fec490", 3.47, .012], ["#8d5b85", 2.96, .009]]) {
+        const light = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: .68 });
+        const ring = mesh(stage, new THREE.TorusGeometry(radius, thickness, 8, 112), light, 0, stageHeight + .014, 0);
+        ring.rotation.x = -Math.PI / 2;
+        ring.castShadow = false;
+        lamps.push(light);
+      }
+      const archColors = ["#a45287", "#dd818e", "#875e9a"];
+      for (const [index, color] of archColors.entries()) {
+        const outline = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: .63 - index * .11 });
+        const arch = mesh(stage, new THREE.TorusGeometry(2.05 + index * .24, .014, 8, 100, Math.PI), outline, 0, .14, -2.92 - index * .05);
+        arch.castShadow = false;
+      }
+
+      const shadowTexture = softShadowTexture();
+      const round = new THREE.SphereGeometry(1, 24, 18);
+      const chestVolume = new THREE.CapsuleGeometry(.43, .43, 12, 32);
+      const upperSleeve = new THREE.CapsuleGeometry(.105, .15, 9, 20);
+      const lowerSleeve = new THREE.CapsuleGeometry(.092, .11, 9, 20);
+      const upperTrouser = new THREE.CapsuleGeometry(.122, .13, 9, 20);
+      const lowerTrouser = new THREE.CapsuleGeometry(.108, .13, 9, 20);
+      const cuffVolume = new THREE.CylinderGeometry(.101, .101, .055, 24);
+      const collarVolume = new THREE.TorusGeometry(.293, .027, 10, 44);
+      const badgeVolume = new THREE.CylinderGeometry(.087, .087, .018, 32);
+      const badgeCenter = new THREE.CylinderGeometry(.037, .037, .021, 18);
+      const shadowPlane = new THREE.CircleGeometry(1, 64);
+
+      function oval(parent, coating, x, y, z, sx, sy, sz) {
+        const form = mesh(parent, round, coating, x, y, z);
+        form.scale.set(sx, sy, sz);
+        form.castShadow = sx > .1 && sy > .09 && sz > .095;
+        return form;
+      }
+
+      function makeChibi(label, x, yaw, palette, headband) {
+        const root = pivot(stage, label, x, 0, 0);
+        root.rotation.y = yaw;
+        const torso = pivot(root, "cintura", 0, .82, 0);
+        const head = pivot(torso, "cuello", 0, 1.095, .009);
+        const shell = material(palette.body);
+        const face = material(palette.face, .56);
+        const accent = material(palette.accent, .34, .22);
+        const trim = material(palette.trim, .43);
+        const trousers = material(palette.legs, .56);
+        const sole = material(palette.shoe, .47);
+        const eyes = material("#281936", .29);
+        const gleam = new THREE.MeshBasicMaterial({ color: "#fff5e9" });
+        const blush = material(palette.blush, .7);
+
+        mesh(torso, chestVolume, shell, 0, .53, 0);
+        oval(torso, trim, 0, .51, .355, .345, .40, .114);
+        const collar = mesh(torso, collarVolume, accent, 0, 1.025, 0);
+        collar.rotation.x = Math.PI / 2;
+        const badge = mesh(torso, badgeVolume, accent, .112, .649, .464);
+        badge.rotation.x = Math.PI / 2;
+        const badgeDot = mesh(torso, badgeCenter, material(palette.shoe), .112, .649, .476);
+        badgeDot.rotation.x = Math.PI / 2;
+
+        oval(head, shell, 0, .324, 0, .523, .458, .442);
+        oval(head, face, 0, .295, .345, .404, .298, .141);
+        for (const side of [-1, 1]) {
+          oval(head, eyes, side * .148, .322, .473, .053, .088, .026);
+          oval(head, gleam, side * .148 - .015, .352, .493, .018, .024, .009).castShadow = false;
+          oval(head, blush, side * .226, .231, .453, .051, .024, .011).castShadow = false;
+          oval(head, accent, side * .49, .335, -.044, .056, headband ? .094 : .103, .074);
+        }
+        const smile = mesh(head, new THREE.TorusGeometry(.057, .009, 8, 20, Math.PI * .84), eyes, .003, .217, .482);
+        smile.rotation.z = Math.PI * 1.08;
+        smile.castShadow = false;
+        if (headband) {
+          const band = mesh(head, new THREE.TorusGeometry(.38, .034, 10, 52), accent, 0, .577, -.014);
+          band.rotation.x = Math.PI / 2 + .13;
+        } else {
+          oval(head, accent, .177, .688, -.071, .102, .087, .104);
+          oval(head, shell, .055, .722, -.088, .135, .104, .127);
+        }
+
+        const joints = { torso, head };
+        const feet = [];
+        for (const [side, name] of [[-1, "Left"], [1, "Right"]]) {
+          const shoulder = pivot(torso, `hombro ${name}`, side * .432, .813, 0);
+          const elbow = pivot(shoulder, `codo ${name}`, 0, -.321, 0);
+          mesh(shoulder, upperSleeve, shell, 0, -.142, 0);
+          oval(shoulder, shell, 0, -.015, 0, .125, .124, .123);
+          mesh(elbow, lowerSleeve, shell, 0, -.102, 0);
+          mesh(elbow, cuffVolume, accent, 0, -.195, 0);
+          oval(elbow, face, 0, -.27, .008, .118, .139, .1);
+
+          const hip = pivot(root, `cadera ${name}`, side * .183, .857, .005);
+          const knee = pivot(hip, `rodilla ${name}`, 0, -.36, 0);
+          mesh(hip, upperTrouser, trousers, 0, -.162, 0);
+          mesh(knee, lowerTrouser, trousers, 0, -.153, 0);
+          const foot = oval(knee, sole, 0, -.36, .087, .157, .1, .23);
+          oval(knee, accent, 0, -.399, .114, .154, .05, .225);
+          feet.push(foot);
+          joints[`shoulder${name}`] = shoulder;
+          joints[`elbow${name}`] = elbow;
+          joints[`hip${name}`] = hip;
+          joints[`knee${name}`] = knee;
+        }
+        const shadow = mesh(stage, shadowPlane, new THREE.MeshBasicMaterial({
+          map: shadowTexture, transparent: true, opacity: .84, depthWrite: false
+        }), x, stageHeight + .011, .04);
+        shadow.rotation.x = -Math.PI / 2;
+        shadow.scale.set(.88, .59, 1);
+        shadow.castShadow = false;
+        shadow.receiveShadow = false;
+        return { root, joints, feet, shadow, x, yaw, angle: 0, spinBar: null, spinStart: 0 };
+      }
+
+      const first = makeChibi("Marfil y dorado", -1.16, .13, {
+        body: "#fff0d2", face: "#ffdbb1", accent: "#eeb950", trim: "#ffda79",
+        legs: "#7654a0", shoe: "#fff0df", blush: "#ee8b86"
+      }, false);
+      const second = makeChibi("Celeste y coral", 1.16, -.13, {
+        body: "#74dce8", face: "#bdf5ec", accent: "#ff8b91", trim: "#65c5e0",
+        legs: "#8b4c91", shoe: "#ffd4bd", blush: "#ee8fac"
+      }, true);
+
+      const grooveBase = {
+        torso: [.08, 0, 0], head: [-.055, .06, -.045],
+        shoulderLeft: [-.48, .04, -.36], shoulderRight: [-.48, -.04, .36],
+        elbowLeft: [-.82, 0, -.07], elbowRight: [-.82, 0, .07],
+        hipLeft: [.18, -.04, -.12], hipRight: [.18, .04, .12],
+        kneeLeft: [-.38, 0, .04], kneeRight: [-.38, 0, -.04]
+      };
+      const pose = variants => ({ ...grooveBase, ...variants });
+      function mirror(source) {
+        return Object.fromEntries(Object.keys(source).map(key => {
+          const opposite = key.endsWith("Left") ? key.replace("Left", "Right")
+            : key.endsWith("Right") ? key.replace("Right", "Left") : key;
+          const [x, y, z] = source[opposite];
+          return [key, [x, -y, -z]];
+        }));
+      }
+      const discoPointRight = pose({
+        torso: [-.065, -.14, -.22], head: [-.18, .29, .18],
+        shoulderRight: [-.3, -.12, 2.42], elbowRight: [-.07, 0, -.09],
+        shoulderLeft: [-.12, .14, -.54], elbowLeft: [-.45, -.14, .78],
+        hipRight: [.11, -.12, .28], hipLeft: [.27, .08, -.05],
+        kneeRight: [-.19, 0, -.025], kneeLeft: [-.4, 0, .04]
+      });
+      const poses = {
+        grooveBase,
+        discoPointRight,
+        discoPointLeft: mirror(discoPointRight),
+        sideStepClap: pose({
+          torso: [.25, -.11, .12], head: [-.11, .16, -.16],
+          shoulderLeft: [-1.12, -.04, .41], shoulderRight: [-1.12, .04, -.41],
+          elbowLeft: [-.36, .01, .41], elbowRight: [-.36, -.01, -.41],
+          hipLeft: [.14, -.12, -.58], hipRight: [.32, .06, .11],
+          kneeLeft: [-.27, 0, .12], kneeRight: [-.52, 0, -.03]
+        }),
+        funkyLean: pose({
+          torso: [-.23, .19, -.17], head: [.095, .14, .24],
+          shoulderLeft: [-.29, .1, -.8], shoulderRight: [-.23, -.12, .77],
+          elbowLeft: [-1.32, .12, .31], elbowRight: [-1.22, -.08, -.42],
+          hipLeft: [.34, -.12, -.21], hipRight: [.21, .09, .29],
+          kneeLeft: [-.53, .04, .05], kneeRight: [-.43, -.04, -.03]
+        }),
+        chorusHandsUp: pose({
+          torso: [-.095, .02, .04], head: [-.12, .055, -.055],
+          shoulderLeft: [-.23, .14, -2.39], shoulderRight: [-.23, -.14, 2.39],
+          elbowLeft: [-.32, .06, -.41], elbowRight: [-.32, -.06, .41],
+          hipLeft: [.22, -.06, -.32], hipRight: [.22, .06, .32],
+          kneeLeft: [-.47, 0, .04], kneeRight: [-.47, 0, -.04]
+        }),
+        smoothSpin: pose({
+          torso: [-.06, -.11, .095], head: [-.08, .14, -.08],
+          shoulderLeft: [-1.02, 0, -.1], shoulderRight: [-.97, -.02, .12],
+          elbowLeft: [-.73, .08, .27], elbowRight: [-.74, -.09, -.28],
+          hipLeft: [.11, -.19, -.10], hipRight: [-.21, -.36, -.08],
+          kneeLeft: [-.25, 0, .04], kneeRight: [-.32, 0, .11]
+        })
+      };
+      const mirrors = Object.fromEntries(Object.entries(poses).map(([name, targetPose]) => [name, mirror(targetPose)]));
+      const labels = {
+        grooveBase: "Groove base", discoPointRight: "Disco hacia la derecha", discoPointLeft: "Disco hacia la izquierda",
+        sideStepClap: "Paso lateral y palmada", funkyLean: "Inclinación funk",
+        chorusHandsUp: "Manos arriba", smoothSpin: "Giro de 360°"
+      };
+      const sequence = ["grooveBase", "discoPointRight", "discoPointLeft", "sideStepClap",
+        "funkyLean", "chorusHandsUp", "smoothSpin", "sideStepClap", "grooveBase", "chorusHandsUp"];
+
+      let playing = false;
+      let usingAudio = false;
+      let heldTime = 0;
+      let startedAt = 0;
+      let measureStart = 0;
+      let startIndex = 0;
+      let request = 0;
+      let selectedUrl;
+      let trackName = "Rock With You · Michael Jackson";
+      let lastFrame;
+      let pendingFrame = 0;
+      let settleUntil = 0;
+      let lastBeat = 0;
+      let lastPose = "grooveBase";
+      let distance = 7.4;
+      const footPoint = new THREE.Vector3();
+
+      function danceTime(now = performance.now()) {
+        if (!playing) return heldTime;
+        return usingAudio ? audio.currentTime : heldTime + (now - startedAt) / 1000;
+      }
+
+      function cueAt(time, delay) {
+        const relative = time - measureStart - delay;
+        const offset = startIndex === 0 ? Math.max(0, Math.floor(relative / secondsPerBar)) : Math.floor(relative / secondsPerBar);
+        const bar = startIndex + offset;
+        const name = sequence[bar % sequence.length];
+        const fraction = clamp(relative / secondsPerBar - offset, 0, 1);
+        return { bar, name, fraction, beat: Math.max(0, time - delay) / secondsPerBeat };
+      }
+
+      function animateChibi(dancer, cue, reversed, approach) {
+        const targets = reversed ? mirrors[cue.name] : poses[cue.name];
+        const { beat, bar, fraction } = cue;
+        const pulse = Math.sin(beat * turn);
+        const sway = Math.sin(beat * Math.PI / 2) * (reversed ? -1 : 1);
+        const bounce = pulse * (reduced.matches ? .42 : 1);
+        const kneeAccent = cue.name === "sideStepClap" ? .13 : .068;
+        for (const [joint, [x, y, z]] of Object.entries(targets)) {
+          const bone = dancer.joints[joint];
+          let beatX = 0;
+          let beatZ = 0;
+          if (joint === "head") {
+            beatX = bounce * .095;
+            beatZ = sway * .067;
+          } else if (joint === "torso") {
+            beatX = bounce * .053;
+            beatZ = sway * .079;
+          } else if (joint.startsWith("knee")) {
+            beatX = (joint.endsWith("Left") ? bounce : -bounce) * kneeAccent - Math.abs(bounce) * .035;
+          } else if (joint.startsWith("hip")) {
+            beatX = (joint.endsWith("Left") ? -bounce : bounce) * .052;
+          } else {
+            beatX = bounce * .084;
+            if (cue.name === "chorusHandsUp") beatZ = sway * .135;
+          }
+          bone.rotation.x = lerp(bone.rotation.x, x + beatX, approach);
+          bone.rotation.y = lerp(bone.rotation.y, y, approach);
+          bone.rotation.z = lerp(bone.rotation.z, z + beatZ, approach);
+        }
+
+        if (cue.name === "smoothSpin") {
+          if (dancer.spinBar !== bar) {
+            dancer.spinStart = Math.round(dancer.angle / turn) * turn;
+            dancer.spinBar = bar;
+          }
+          dancer.angle = dancer.spinStart + (reversed ? -turn : turn) * smoothstep(fraction, .055, .91);
+        } else {
+          dancer.angle = Math.round(dancer.angle / turn) * turn;
+          dancer.spinBar = null;
+        }
+        dancer.root.rotation.y = lerp(dancer.root.rotation.y, dancer.yaw + dancer.angle + sway * .06, approach);
+        const travel = cue.name === "sideStepClap" ? .23 : .095;
+        dancer.root.position.x = lerp(dancer.root.position.x, dancer.x + sway * travel, approach);
+        dancer.root.position.z = lerp(dancer.root.position.z, pulse * .055, approach);
+        dancer.joints.torso.position.y = lerp(dancer.joints.torso.position.y, .82 + bounce * .028, approach);
+
+        // Anchor the lowest sole to the platform as the knees bend.
+        let lowest = Infinity;
+        for (const foot of dancer.feet) {
+          foot.getWorldPosition(footPoint);
+          lowest = Math.min(lowest, footPoint.y);
+        }
+        dancer.root.position.y += stageHeight + .102 - lowest;
+        dancer.shadow.position.x = dancer.root.position.x;
+        dancer.shadow.position.z = dancer.root.position.z + .056;
+        dancer.shadow.scale.set(.86 + Math.abs(sway) * .08, .56 + Math.abs(pulse) * .05, 1);
+      }
+
+      function frame(now) {
+        pendingFrame = 0;
+        if (lastFrame !== undefined && now - lastFrame < 28) {
+          pendingFrame = requestAnimationFrame(frame);
+          return;
+        }
+        const dt = lastFrame === undefined ? 1 / 60 : Math.min((now - lastFrame) / 1000, .06);
+        lastFrame = now;
+        const time = danceTime(now);
+        const cue1 = cueAt(time, 0);
+        const cue2 = cueAt(time, playing ? secondDelay : 0);
+        const approach = 1 - Math.exp(-dt * 15);
+        animateChibi(first, cue1, false, approach);
+        animateChibi(second, cue2, true, approach);
+
+        if (cue1.name !== lastPose) {
+          lastPose = cue1.name;
+          poseName.textContent = labels[lastPose];
+        }
+        const beatIndex = Math.floor(cue1.beat) % 4;
+        if (beatIndex !== lastBeat) {
+          beatLights[lastBeat].classList.remove("is-on");
+          beatLights[beatIndex].classList.add("is-on");
+          lastBeat = beatIndex;
+        }
+        const pulse = Math.sin(cue1.beat * turn) * .5 + .5;
+        goldLight.intensity = 74 + pulse * 5;
+        pinkLight.intensity = 77 + (1 - pulse) * 7;
+        lamps[0].opacity = .62 + pulse * .13;
+        lamps[1].opacity = .68 - pulse * .13;
+        const cameraDrift = playing && !reduced.matches ? Math.sin(time * .41) * .11 : 0;
+        camera.position.x = .37 + cameraDrift;
+        camera.position.z = distance;
+        camera.position.y = 2.55 + distance * .098;
+        camera.lookAt(target);
+        renderer.render(stage, camera);
+        if (playing || now < settleUntil) pendingFrame = requestAnimationFrame(frame);
+      }
+
+      function wake() {
+        settleUntil = performance.now() + 570;
+        if (!pendingFrame) {
+          lastFrame = undefined;
+          pendingFrame = requestAnimationFrame(frame);
+        }
+      }
+
+      function resize() {
+        const width = canvas.clientWidth;
+        const height = canvas.clientHeight;
+        camera.aspect = width / Math.max(1, height);
+        const frustumAtOne = 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.aspect;
+        distance = Math.max(6.88, 4.85 / frustumAtOne) + .36;
+        camera.updateProjectionMatrix();
+        renderer.setSize(width, height, false);
+        wake();
+      }
+
+      function showPlayback() {
+        play.textContent = playing ? "Pausar" : "Reproducir";
+        play.classList.toggle("is-playing", playing);
+      }
+
+      function hold(time = danceTime()) {
+        heldTime = Math.max(0, time);
+        playing = false;
+        usingAudio = false;
+        request++;
+        audio.pause();
+        showPlayback();
+        wake();
+      }
+
+      function resetClock() {
+        heldTime = 0;
+        measureStart = 0;
+        startIndex = 0;
+        for (const dancer of [first, second]) dancer.spinBar = null;
+      }
+
+      async function start() {
+        if (audio.ended) resetClock();
+        playing = true;
+        usingAudio = false;
+        startedAt = performance.now();
+        showPlayback();
+        wake();
+        const thisRequest = ++request;
+        try {
+          if (audio.readyState >= HTMLMediaElement.HAVE_METADATA) audio.currentTime = heldTime;
+          await audio.play();
+          if (thisRequest !== request || !playing) return;
+          usingAudio = true;
+          audioStatus.textContent = trackName;
+        } catch {
+          if (thisRequest === request && playing) audioStatus.textContent = "Reloj interno · Carga un MP3 para oír música";
+        }
+      }
+
+      play.addEventListener("click", () => {
+        if (playing) hold();
+        else start();
+      });
+      step.addEventListener("click", () => {
+        const time = danceTime();
+        startIndex = cueAt(time, 0).bar + 1;
+        measureStart = time;
+        wake();
+      });
+      picker.addEventListener("change", () => {
+        const file = picker.files?.[0];
+        if (!file) return;
+        const wasPlaying = playing;
+        hold();
+        resetClock();
+        if (selectedUrl) URL.revokeObjectURL(selectedUrl);
+        selectedUrl = URL.createObjectURL(file);
+        trackName = file.name;
+        audio.src = selectedUrl;
+        audioStatus.textContent = trackName;
+        if (wasPlaying) start();
+      });
+      audio.addEventListener("error", () => {
+        if (usingAudio) {
+          heldTime = audio.currentTime;
+          startedAt = performance.now();
+          usingAudio = false;
+        }
+        audioStatus.textContent = "Pista no disponible · Carga un MP3";
+      });
+      audio.addEventListener("ended", () => {
+        hold(audio.currentTime);
+        audioStatus.textContent = "La canción terminó";
+      });
+      window.addEventListener("resize", resize);
+      play.disabled = step.disabled = picker.disabled = false;
+      resize();
+    }
+  </script>
+</body>
+</html>

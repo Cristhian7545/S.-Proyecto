@@ -1,0 +1,172 @@
+:root {
+  font-family: "Instrument Sans", system-ui, sans-serif;
+  background: #9fdcee;
+  color: #25383b;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; }
+button { font: inherit; cursor: pointer; }
+
+.grove {
+  position: relative;
+  isolation: isolate;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  background: #a1dceb url("../assets/imagenes/loma-flores.png") center bottom / cover no-repeat;
+}
+
+.grove__cloud {
+  position: absolute;
+  z-index: -1;
+  width: clamp(12rem, 34vw, 39rem);
+  height: clamp(3.2rem, 8vw, 7.7rem);
+  background:
+    radial-gradient(ellipse at 50% 69%, #fff9e5 0 16%, #fff8e3ba 29%, transparent 59%),
+    radial-gradient(ellipse at 38% 45%, #fffef2e6 0 10%, #fffdf3ad 18%, transparent 40%),
+    radial-gradient(ellipse at 54% 40%, #fffdf0d8 0 9%, #fffbee82 19%, transparent 32%),
+    radial-gradient(ellipse at 68% 60%, #fffdf0c9 0 8%, #fffdf08a 16%, transparent 33%);
+  filter: blur(clamp(2px, .35vw, 5px));
+  animation: drifting-clouds 42s ease-in-out infinite alternate;
+}
+
+.grove__cloud--near { top: 11%; left: -6%; opacity: .78; }
+.grove__cloud--far { top: 35%; left: 49%; opacity: .54; animation-duration: 57s; animation-delay: -19s; scale: 1.2 .67; }
+
+@keyframes drifting-clouds { from { transform: translateX(-8vw); } to { transform: translateX(29vw); } }
+
+.grove__tree {
+  position: absolute;
+  z-index: -1;
+  bottom: 28.5%;
+  left: 68%;
+  width: min(55vw, 69dvh);
+  aspect-ratio: 1;
+  transform: translateX(-50%);
+}
+
+.grove__tree::before {
+  content: "";
+  position: absolute;
+  inset: auto 15% -2.3% 22%;
+  height: 9%;
+  border-radius: 50%;
+  transform: skewX(-23deg) rotate(-5deg);
+  background: radial-gradient(ellipse, #274a2188 10%, #3a612744 45%, transparent 71%);
+}
+
+.grove__tree img {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: auto;
+  transform-origin: 50% 97%;
+  animation: cherry-in-the-wind 6.8s ease-in-out infinite alternate;
+}
+
+@keyframes cherry-in-the-wind {
+  from { transform: rotate(-.65deg) skewX(-.45deg); }
+  to { transform: rotate(1.1deg) skewX(.62deg); }
+}
+
+#flower-field {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.grove__controls {
+  position: absolute;
+  z-index: 2;
+  inset: max(.85rem, env(safe-area-inset-top)) max(.85rem, env(safe-area-inset-right)) auto max(.85rem, env(safe-area-inset-left));
+  display: flex;
+  justify-content: space-between;
+  gap: .5rem;
+}
+
+.grove__control {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  min-height: 2.45rem;
+  padding: .48rem .82rem;
+  border: 1px solid #fffef0da;
+  border-radius: 100vmax;
+  background: #fff7dfeb;
+  color: #304345;
+  font-size: clamp(.7rem, 1.7vw, .84rem);
+  text-decoration: none;
+  box-shadow: 0 3px 15px #395a5d16;
+}
+
+.grove__control:hover { background: #fff8e9; }
+.grove__control:focus-visible { outline: 2px solid #584147; outline-offset: 4px; }
+.grove__note { color: #9b4c61; }
+
+.grove__wish {
+  position: absolute;
+  top: 29%;
+  left: 7%;
+  width: 39%;
+  margin: 0;
+  display: grid;
+  justify-items: center;
+  transform: translateY(-50%);
+  color: #24464e;
+  font: 400 clamp(1.85rem, 4.8vw, 5.1rem)/.98 "Cormorant Garamond", Georgia, serif;
+  letter-spacing: -.055em;
+  text-align: center;
+  text-wrap: balance;
+  text-shadow: 0 1px 0 #fff9e3bc, 0 0 32px #fff9e3d9;
+  animation: wish-arrives 1.65s .85s ease-out both;
+  pointer-events: none;
+}
+
+.grove__wish em {
+  margin-top: .3em;
+  color: #733751;
+  font-size: 1.07em;
+}
+
+.grove__ornament {
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  margin-bottom: .78rem;
+  color: #984964;
+  font: 400 clamp(1rem, 2.1vw, 1.55rem)/1 Georgia, serif;
+}
+
+.grove__ornament::before, .grove__ornament::after {
+  content: "";
+  width: clamp(1.5rem, 5vw, 4rem);
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #8c486793);
+}
+
+.grove__ornament::after { transform: scaleX(-1); }
+
+@keyframes wish-arrives {
+  from { opacity: 0; transform: translateY(calc(-50% + 12px)); }
+  to { opacity: 1; transform: translateY(-50%); }
+}
+
+@media (orientation: portrait) {
+  .grove__tree { left: 58%; bottom: 25.4%; width: min(93vw, 53dvh); }
+  .grove__wish { top: clamp(7.2rem, 21%, 12.5rem); left: 4%; width: 92%; font-size: clamp(1.85rem, 8vw, 3.15rem); }
+  .grove__ornament { margin-bottom: .55rem; }
+  .grove__cloud--near { top: 13%; left: -24%; }
+  .grove__cloud--far { top: 28%; }
+}
+
+@media (max-height: 400px) and (orientation: landscape) {
+  .grove__wish { top: 34%; font-size: clamp(1.65rem, 8vh, 2.65rem); }
+  .grove__ornament { margin-bottom: .45rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grove__cloud, .grove__tree img, .grove__wish { animation: none; }
+}
