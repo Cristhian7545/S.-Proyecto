@@ -1,6 +1,6 @@
 # S. Proyecto
 
-Sorpresa interactiva de cumpleaños para Isa.
+Sorpresa interactiva
 
 Abre [index.html](index.html) en el navegador. Desde la pradera, pulsa **¿Empezamos?** para elegir un vinilo. Si el navegador bloquea el inicio automático, pulsa **Activar música**.
 
